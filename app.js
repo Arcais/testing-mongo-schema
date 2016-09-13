@@ -4,20 +4,27 @@ var mongoose = require('mongoose');
 
 mongoose.connect('mongodb://localhost/taiga');
 
+var server = app.listen(8000, function() {
+  console.log("App is listening on http://localhost:%d", server.address().port);
+});
+
 var usersSchema = new mongoose.Schema({
   username: String,
-  password: String
+  screenname: String,
+  password: String,
+  sesstoken: String
 },{collection:"userstest"});
 
-var User = mongoose.model('User', usersSchema);
+var User = mongoose.model('users', usersSchema);
 
-var usertesting = new User({ username: "arcais2" , password: "unencrypted" });
-usertesting.save();
+//var usertesting = new User({ username: "arcaya22" , screenname: "ArCaYa22", password: "unencrypted" , sesstoken: "notokenyet" });
+//usertesting.save();
 
 /* ************************** */
 
 var roomsSchema = new mongoose.Schema({
   roomname: String,
+  prettyname: String,
   messages: [
   	{
 	  	userid: {
@@ -33,12 +40,47 @@ var roomsSchema = new mongoose.Schema({
   ]
 },{collection:"roomstest"});
 
-var Room = mongoose.model('Room', roomsSchema);
+var Room = mongoose.model('rooms', roomsSchema);
 
-var roomtesting = new Room({ roomname: "World of Warcraft" , messages:[{ userid: '57d6cef6bce0ff1da0f3442e' , body: 'asdf' },{ userid: '57d6cef6bce0ff1da0f3442e' , body: 'asdf2' },{ userid: '57d6cef6bce0ff1da0f3442e' , body: 'asdf3' }] });
-roomtesting.save();
+//var roomtesting = new Room({ roomname: "jojos-bizzare-adventure" , prettyname: "JoJo's Bizzare Adventure", messages:[] });
+//roomtesting.save();
 
 //
 //
 
-console.log("finished");
+
+app.get('/graph/userlist', function(req,res){
+	User.find(function(err,data){
+		res.send(data);
+	});
+});
+
+app.get('/graph/roomlist', function(req,res){
+	Room.find(function(err,data){
+		res.send(data);
+	});
+});
+
+
+app.get('/graph/messages/:roomname', function(req,res){
+	Room.find({roomname: req.params.roomname.toLowerCase()},function(err,data){
+		if(data.length==0){
+			res.send(null);
+		}
+		else{
+			var messages = data[0].messages;
+			res.send(messages);
+		}
+	});
+});
+
+app.get('/graph/users/:username', function(req,res){
+	User.find({username: req.params.username.toLowerCase()},function(err,data){
+		if(data.length==0){
+			res.send(null);
+		}
+		else{
+			res.send({username: data[0].username, screenname: data[0].screenname});
+		}
+	});
+});
