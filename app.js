@@ -1,6 +1,10 @@
 var express = require('express');
 var app = express();
 var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true })); //for parsing application/x-www-form-urlencoded
 
 mongoose.connect('mongodb://localhost/taiga');
 
@@ -9,22 +13,44 @@ var server = app.listen(8000, function() {
 });
 
 var usersSchema = new mongoose.Schema({
-  username: String,
-  screenname: String,
-  password: String,
-  sesstoken: String
-},{collection:"userstest"});
+  username: {
+  	type: String,
+  	required: true
+  },
+  screenname: {
+  	type: String,
+  	required: true
+  },
+  password: {
+  	type: String,
+  	required: true
+  },
+  sesstoken: {
+  	type: String,
+  	required: true
+  },
+  sessip: {
+  	type: String,
+  	required: true
+  }
+},{collection:"users"});
 
-var User = mongoose.model('users', usersSchema);
+var User = mongoose.model('User', usersSchema);
 
-//var usertesting = new User({ username: "arcaya22" , screenname: "ArCaYa22", password: "unencrypted" , sesstoken: "notokenyet" });
-//usertesting.save();
+// var userInsertObject = new User({ username: "arcayas22" , screenname: "ArCaYas22", password: "unencrypted" , sesstoken: "none" , sessip: "none" });
+// userInsertObject.save();
 
 /* ************************** */
 
 var roomsSchema = new mongoose.Schema({
-  roomname: String,
-  prettyname: String,
+  roomname: {
+  	type: String,
+  	required: true
+  },
+  prettyname: {
+  	type: String,
+  	required: true
+  },
   messages: [
   	{
 	  	userid: {
@@ -38,12 +64,12 @@ var roomsSchema = new mongoose.Schema({
 	  	body: String
   	}
   ]
-},{collection:"roomstest"});
+},{collection:"rooms"});
 
-var Room = mongoose.model('rooms', roomsSchema);
+var Room = mongoose.model('Room', roomsSchema);
 
-//var roomtesting = new Room({ roomname: "jojos-bizzare-adventure" , prettyname: "JoJo's Bizzare Adventure", messages:[] });
-//roomtesting.save();
+// var roomtesting = new Room({ roomname: "jojos-bizzare-adventure" , prettyname: "JoJo's Bizzare Adventure", messages:[] });
+// roomtesting.save();
 
 //
 //
@@ -67,9 +93,37 @@ app.get('/graph/roomlist', function(req,res){
 	});
 });
 
+app.get('/graph/users/:username', function(req,res){
+	User.find({ username: req.params.username.toLowerCase() },function(err,data){
+		if(err){
+			throw err;
+		}
+		if(data.length==0){
+			res.send(null);
+		}
+		else{
+			res.send({ id: data[0].id, username: data[0].username, screenname: data[0].screenname });
+		}
+	});
+});
+
+app.get('/graph/rooms/:roomname', function(req,res){
+	Room.find({ roomname: req.params.roomname.toLowerCase() },function(err,data){
+		if(err){
+			throw err;
+		}
+		if(data.length==0){
+			res.send(null);
+		}
+		else{
+			res.send({ id: data[0].id, roomname: data[0].roomname, prettyname: data[0].prettyname });
+		}
+	});
+});
+
 
 app.get('/graph/messages/:roomname', function(req,res){
-	Room.find({roomname: req.params.roomname.toLowerCase()},function(err,data){
+	Room.find({ roomname: req.params.roomname.toLowerCase() },function(err,data){
 		if(err){
 			throw err;
 		}
@@ -83,16 +137,12 @@ app.get('/graph/messages/:roomname', function(req,res){
 	});
 });
 
-app.get('/graph/users/:username', function(req,res){
-	User.find({username: req.params.username.toLowerCase()},function(err,data){
-		if(err){
-			throw err;
-		}
-		if(data.length==0){
-			res.send(null);
-		}
-		else{
-			res.send({username: data[0].username, screenname: data[0].screenname});
-		}
-	});
+app.post('/graph/sendMessage', function (req, res) {
+	var sentMessage=req.body;
+ 	var finalMessage = { userid: mongoose.Types.ObjectId(sentMessage.userid), body: sentMessage.body, timestamp: Date(sentMessage.timestamp) };
+ 	Room.where({ roomname: sentMessage.roomname.toLowerCase() }).update({ $push : {messages: finalMessage}},
+    	function(err, result) {
+			console.log(err);
+			console.log(result);
+		});
 });
