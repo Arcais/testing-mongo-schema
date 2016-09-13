@@ -51,12 +51,18 @@ var Room = mongoose.model('rooms', roomsSchema);
 
 app.get('/graph/userlist', function(req,res){
 	User.find(function(err,data){
+		if(err){
+			throw err;
+		}
 		res.send(data);
 	});
 });
 
 app.get('/graph/roomlist', function(req,res){
 	Room.find(function(err,data){
+		if(err){
+			throw err;
+		}
 		res.send(data);
 	});
 });
@@ -64,6 +70,9 @@ app.get('/graph/roomlist', function(req,res){
 
 app.get('/graph/messages/:roomname', function(req,res){
 	Room.find({roomname: req.params.roomname.toLowerCase()},function(err,data){
+		if(err){
+			throw err;
+		}
 		if(data.length==0){
 			res.send(null);
 		}
@@ -76,6 +85,9 @@ app.get('/graph/messages/:roomname', function(req,res){
 
 app.get('/graph/users/:username', function(req,res){
 	User.find({username: req.params.username.toLowerCase()},function(err,data){
+		if(err){
+			throw err;
+		}
 		if(data.length==0){
 			res.send(null);
 		}
