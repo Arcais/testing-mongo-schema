@@ -26,19 +26,19 @@ var usersSchema = new mongoose.Schema({
   	required: true
   },
   sesstoken: {
-  	type: String,
-  	required: true
+    type: String,
+    default: ""
   },
   sessip: {
-  	type: String,
-  	required: true
+    type: String,
+    default: ""
   }
 },{collection:"users"});
 
 var User = mongoose.model('User', usersSchema);
 
-// var userInsertObject = new User({ username: "arcayas22" , screenname: "ArCaYas22", password: "unencrypted" , sesstoken: "none" , sessip: "none" });
-// userInsertObject.save();
+ // var userInsertObject = new User({ username: "arcayas22" , screenname: "ArCaYas22", password: "unencrypted" });
+ // userInsertObject.save();
 
 /* ************************** */
 
